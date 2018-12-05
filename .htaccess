@@ -1,0 +1,71 @@
+RewriteEngine On
+Options +FollowSymLinks
+
+<IfModule mod_headers.c>
+<FilesMatch "\.(svg|ttf|otf|eot|woff|woff2|ico|font.css|fonts.css|css|js)$">
+    Header set Access-Control-Allow-Origin "*"
+</FilesMatch>
+</IfModule>
+
+<ifModule mod_deflate.c>
+  <filesMatch ".(css|js|html|php)$">
+    SetOutputFilter DEFLATE
+  </filesMatch>
+  
+  <FilesMatch ".(flv|gif|jpg|jpeg|png|ico|swf|js|pdf)$">
+  Header set Cache-Control "max-age=2592000"
+</FilesMatch>
+
+</ifModule>
+
+
+
+# static
+RewriteRule ^$ 												index.php
+RewriteRule ^index/?$	 									index.php
+RewriteRule ^login/?$	 									config/proses.php?page=login
+RewriteRule ^home/?$	 									master.php?page=home
+RewriteRule ^users/?$	 									master.php?page=users
+RewriteRule ^logout/?$	 									master.php?page=logout
+RewriteRule ^tambah-user/?$	 								master.php?page=users&act=tambah
+RewriteRule ^input-user/?$	 								config/proses.php?page=input-user
+RewriteRule ^edit-user-(.*)/?$								master.php?page=users&act=edit&id=$1
+RewriteRule ^update-user/?$	 								config/proses.php?page=update-user
+RewriteRule ^hapus-user-(.*)/?$	 							config/proses.php?page=hapus-user&id=$1
+
+RewriteRule ^berita/?$	 										master.php?page=berita
+RewriteRule ^tambah-berita/?$	 								master.php?page=berita&act=tambah
+RewriteRule ^input-berita/?$	 								config/proses.php?page=input-berita
+
+RewriteRule ^edit-berita-(.*)/?$								master.php?page=berita&act=edit&id=$1
+RewriteRule ^update-berita/?$	 								config/proses.php?page=update-berita
+RewriteRule ^delete-berita-(.*)/?$	 							config/proses.php?page=delete-berita&id=$1
+RewriteRule ^halkategori-(.*)-([0-9]+)/?$						master.php?page=berita&id=$1&halkategori=$2 [L]
+
+ErrorDocument 404    										http://sixghakreasi.com/404
+RewriteRule ^404/?$ 										404.php
+
+AddType image/svg+xml svg svgz
+AddType application/octet-stream .pdf
+
+
+# proc/self/environ? no way!
+RewriteCond %{QUERY_STRING} proc/self/environ [OR]
+ 
+# Block out any script trying to set a mosConfig value through the URL
+RewriteCond %{QUERY_STRING} mosConfig_[a-zA-Z_]{1,21}(=|\%3D) [OR]
+ 
+# Block out any script trying to base64_encode crap to send via URL
+RewriteCond %{QUERY_STRING} base64_encode.*(.*) [OR]
+ 
+# Block out any script that includes a <script> tag in URL
+RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3E) [NC,OR]
+ 
+# Block out any script trying to set a PHP GLOBALS variable via URL
+RewriteCond %{QUERY_STRING} GLOBALS(=|[|\%[0-9A-Z]{0,2}) [OR]
+ 
+# Block out any script trying to modify a _REQUEST variable via URL
+RewriteCond %{QUERY_STRING} _REQUEST(=|[|\%[0-9A-Z]{0,2})
+ 
+# Send all blocked request to homepage with 403 Forbidden error!
+RewriteRule ^(.*)$ index.php [F,L]
